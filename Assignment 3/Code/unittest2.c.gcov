@@ -1,0 +1,142 @@
+        -:    0:Source:unittest2.c
+        -:    0:Graph:unittest2.gcno
+        -:    0:Data:unittest2.gcda
+        -:    0:Runs:1
+        -:    0:Programs:1
+        -:    1:/* 
+        -:    2:* --------------------------------------------------------
+        -:    3:* Brian Laccone
+        -:    4:* CS 372 - Assignment 3
+        -:    5:* unittest2.c
+        -:    6:* --------------------------------------------------------
+        -:    7:*/
+        -:    8:
+        -:    9:#include "dominion.h"
+        -:   10:#include "dominion_helpers.h"
+        -:   11:#include "rngs.h"
+        -:   12:#include <string.h>
+        -:   13:#include <stdio.h>
+        -:   14:#include <assert.h>
+        -:   15:
+        -:   16://integer to keep track of how many tests fail
+        -:   17:int failCount = 0;
+        -:   18:
+        -:   19://function to check if two integers are equal
+        -:   20://better than using assert in c because it won't stop the program
+        8:   21:void assertTrue(int a, int b)
+        -:   22:{
+        -:   23:
+        8:   24:	if (a == b)
+        -:   25:	{
+        8:   26:		printf("Test: PASSED\n");
+        -:   27:	}
+        -:   28:	else
+        -:   29:	{
+    #####:   30:		failCount++;
+    #####:   31:		printf("Test: FAILED\n");
+        -:   32:	}
+        -:   33:
+        8:   34:}
+        -:   35:
+        1:   36:int main()
+        -:   37:{
+        -:   38:
+        1:   39:	int seed = 100;
+        1:   40:	int k[10] = {adventurer, council_room, feast, gardens, mine, 
+        -:   41:				remodel, smithy, village, baron, great_hall};
+        -:   42:	struct gameState S;
+        1:   43:	int numPlayers = 2;
+        -:   44:	int numOfBuys;
+        -:   45:	int numOfCoins;
+        -:   46:	int numOfProvince;
+        -:   47:
+        1:   48:	printf("----------------- Testing buyCard() ----------------\n");
+        1:   49:	memset(&S,23,sizeof(struct gameState));
+        1:   50:    initializeGame(numPlayers, k, seed, &S);
+        -:   51:
+        -:   52:    //test 1
+        1:   53:    printf("\nTest 1 ---> Set numBuys to 0 before buying\n\n");
+        -:   54:    //set state variables to proper numbers for testing
+        -:   55:    //want to make sure it only catches the numBuys value
+        1:   56:    S.numBuys = 0;
+        1:   57:    S.coins = 10;
+        1:   58:    S.supplyCount[province] = 10;
+        1:   59:    assertTrue(buyCard(province,&S),-1);
+        1:   60:    printf("\n");
+        -:   61:
+        -:   62:    //test 2
+        1:   63:    printf("\nTest 2 ---> Set province supply count to 0 before buying\n\n");
+        -:   64:    //set state variables to proper numbers for testing
+        1:   65:    S.numBuys = 1;
+        1:   66:    S.coins = 10;
+        1:   67:    S.supplyCount[province] = 0;
+        1:   68:    assertTrue(buyCard(province,&S),-1);
+        1:   69:    printf("\n");
+        -:   70:
+        -:   71:    //test 3
+        1:   72:    printf("\nTest 3 ---> Set the coin amount to 0 before buying\n\n");
+        -:   73:    //set state variables to proper numbers for testing
+        1:   74:    S.numBuys = 1;
+        1:   75:    S.coins = 0;
+        1:   76:    S.supplyCount[province] = 10;
+        1:   77:    assertTrue(buyCard(province,&S),-1);
+        1:   78:    printf("\n");
+        -:   79:
+        -:   80:    //test 4
+        1:   81:    printf("\nTest 4 ---> numBuys, coins, and province supply count decrease after buying\n\n");
+        -:   82:    //set state variables to proper numbers for testing
+        1:   83:    S.numBuys = 1;
+        1:   84:    S.coins = 10;
+        1:   85:    S.supplyCount[province] = 10;
+        1:   86:    numOfBuys = S.numBuys;
+        1:   87:    numOfCoins = S.coins;
+        1:   88:    numOfProvince = S.supplyCount[province];
+        1:   89:    buyCard(province,&S);
+        -:   90:    //numBuys
+        1:   91:    printf("Expected numBuys = %d\n", numOfBuys-1);
+        1:   92:    printf("Actual numBuys = %d\n", S.numBuys);
+        1:   93:    assertTrue(numOfBuys-1,S.numBuys);
+        1:   94:    printf("\n");
+        -:   95:    //coins
+        1:   96:    printf("Expected coins = %d\n", numOfCoins-8);
+        1:   97:    printf("Actual coins = %d\n", S.coins);
+        1:   98:    assertTrue(numOfCoins-8,S.coins);
+        1:   99:    printf("\n");
+        -:  100:    //province supply
+        1:  101:    printf("Expected province supply = %d\n", numOfProvince-1);
+        1:  102:    printf("Actual province supply = %d\n", S.supplyCount[province]);
+        1:  103:    assertTrue(numOfProvince-1,S.supplyCount[province]);
+        1:  104:    printf("\n");
+        -:  105:
+        -:  106:    //test 5
+        1:  107:    printf("\nTest 5 ---> Check if buying a province increases the current player's score\n\n");
+        -:  108:    //set state variables to proper numbers for testing
+        1:  109:    S.numBuys = 1;
+        1:  110:    S.coins = 10;
+        1:  111:    S.supplyCount[province] = 10;
+        1:  112:    int p1Score = scoreFor(0,&S);
+        1:  113:    int p2Score = scoreFor(1,&S);
+        1:  114:    buyCard(province,&S);
+        -:  115:    //player whose turn it is
+        1:  116:    printf("Expected victory score of player whose turn it is = %d\n", p1Score+6);
+        1:  117:    printf("Actual victory score of player whose turn it is = %d\n", scoreFor(0,&S));
+        1:  118:    assertTrue(p1Score+6, scoreFor(0,&S));
+        1:  119:    printf("\n");
+        -:  120:    //other player
+        1:  121:    printf("Expected victory score of the other player = %d\n", p2Score);
+        1:  122:    printf("Actual victory score of the other player = %d\n", scoreFor(1,&S));
+        1:  123:    assertTrue(p2Score, scoreFor(1,&S));
+        1:  124:    printf("\n");
+        -:  125:
+        1:  126:    if (failCount) 
+        -:  127:    {
+    #####:  128:        printf("\nTEST FAILED\n");
+    #####:  129:        printf("FAILS: %d\n\n",failCount);
+        -:  130:    }
+        -:  131:    else 
+        -:  132:    {
+        1:  133:        printf("\nTEST SUCCESSFULLY COMPLETED\n\n");
+        -:  134:    }
+        -:  135:
+        1:  136:	return 0;
+        -:  137:}
